@@ -90,14 +90,7 @@ const getByZona = async (req, res) => {
         res.json({
             success: true,
             count: convencionistas.length,
-            data: convencionistas.map(c => ({
-                id: c.id,
-                nombre: c.nombre,
-                apellido: c.apellido,
-                tipo_asamblea: c.tipo_asamblea,
-                referencia_pago: c.referencia_pago,
-                fecha_registro: c.fecha_registro
-            }))
+            data: convencionistas
         });
     } catch (error) {
         console.error('Error en getByZona:', error);
