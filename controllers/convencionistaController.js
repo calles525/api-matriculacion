@@ -5,11 +5,12 @@ const create = async (req, res) => {
         nombre, 
         apellido, 
         edad, 
+        sexo,
         tipo_matricula, 
         tipo_pago, 
         referencia_pago, 
         monto,
-        tipo_asamblea = 'no_asambleista'  // Valor por defecto
+        tipo_asamblea = 'Visita'  // Nuevo valor por defecto
     } = req.body;
     
     const usuario_id = req.query.usuario_id;
@@ -19,13 +20,15 @@ const create = async (req, res) => {
         nombre, 
         apellido, 
         zona_id,
-        tipo_asamblea 
+        tipo_asamblea,
+        sexo
     });
 
     try {
         // Validación básica
         if (!nombre || !apellido || !referencia_pago || !zona_id || !usuario_id) {
             return res.status(400).json({ 
+                success: false,
                 error: 'Datos incompletos',
                 requeridos: {
                     nombre: 'string',
@@ -41,6 +44,7 @@ const create = async (req, res) => {
             nombre, 
             apellido, 
             edad: edad || null, 
+            sexo,
             tipo_matricula, 
             tipo_pago, 
             referencia_pago, 
@@ -57,6 +61,8 @@ const create = async (req, res) => {
             data: {
                 nombre,
                 apellido,
+                edad,
+                sexo,
                 tipo_asamblea,
                 referencia_pago,
                 zona_id,
@@ -90,7 +96,19 @@ const getByZona = async (req, res) => {
         res.json({
             success: true,
             count: convencionistas.length,
-            data: convencionistas
+            data: convencionistas.map(c => ({
+                id: c.id,
+                nombre: c.nombre,
+                apellido: c.apellido,
+                edad: c.edad,
+                sexo: c.sexo,
+                tipo_asamblea: c.tipo_asamblea,
+                tipo_matricula: c.tipo_matricula,
+                tipo_pago: c.tipo_pago,
+                referencia_pago: c.referencia_pago,
+                monto: c.monto,
+                fecha_registro: c.fecha_registro
+            }))
         });
     } catch (error) {
         console.error('Error en getByZona:', error);
@@ -115,20 +133,23 @@ const getStats = async (req, res) => {
     try {
         const stats = await Convencionista.getStatsByZona(zona_id);
         
-        // Formateamos estadísticas de asambleistas
-        const asambleistasStats = stats.porTipoAsamblea.reduce((acc, curr) => {
-            acc[curr.tipo_asamblea] = curr.cantidad;
-            return acc;
-        }, {});
+        // Formateamos estadísticas
+        const formatStats = (data) => {
+            return data.reduce((acc, curr) => {
+                acc[curr[Object.keys(curr)[0]]] = curr.cantidad;
+                return acc;
+            }, {});
+        };
 
         res.json({
             success: true,
             data: {
                 total: stats.total,
-                porTipoMatricula: stats.porTipoMatricula,
-                porTipoPago: stats.porTipoPago,
-                montoTotal: stats.montoTotal,
-                asambleistas: asambleistasStats
+                porTipoMatricula: formatStats(stats.porTipoMatricula),
+                porTipoPago: formatStats(stats.porTipoPago),
+                porTipoAsamblea: formatStats(stats.porTipoAsamblea),
+                porSexo: formatStats(stats.porSexo),
+                montoTotal: stats.montoTotal || 0
             }
         });
     } catch (error) {
@@ -141,7 +162,6 @@ const getStats = async (req, res) => {
     }
 };
 
-// Nuevo método para actualizar tipo_asamblea
 const updateTipoAsamblea = async (req, res) => {
     const { id } = req.params;
     const { tipo_asamblea } = req.body;
@@ -165,7 +185,7 @@ const updateTipoAsamblea = async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Tipo de asamblea actualizado',
+            message: 'Tipo de participación actualizado',
             data: { id, tipo_asamblea }
         });
     } catch (error) {
@@ -178,9 +198,46 @@ const updateTipoAsamblea = async (req, res) => {
     }
 };
 
+const updateSexo = async (req, res) => {
+    const { id } = req.params;
+    const { sexo } = req.body;
+
+    if (!id) {
+        return res.status(400).json({
+            success: false,
+            error: 'ID es requerido'
+        });
+    }
+
+    try {
+        const updated = await Convencionista.updateSexo(id, sexo);
+        
+        if (!updated) {
+            return res.status(404).json({
+                success: false,
+                error: 'Convencionista no encontrado'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Sexo actualizado',
+            data: { id, sexo }
+        });
+    } catch (error) {
+        console.error('Error en updateSexo:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error al actualizar',
+            details: error.message
+        });
+    }
+};
+
 module.exports = { 
     create, 
     getByZona, 
     getStats, 
-    updateTipoAsamblea 
+    updateTipoAsamblea,
+    updateSexo
 };

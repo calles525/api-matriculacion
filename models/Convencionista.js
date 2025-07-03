@@ -5,21 +5,38 @@ class Convencionista {
         nombre, 
         apellido, 
         edad, 
+        sexo, 
         tipo_matricula, 
         tipo_pago, 
         referencia_pago, 
         monto, 
         zona_id, 
         usuario_id, 
-        tipo_asamblea = 'no_asambleista'  // Valor por defecto
+        tipo_asamblea = 'Visita'  // Nuevo valor por defecto
     }) {
-        // Validamos que el valor sea uno de los permitidos
-        const tiposValidos = ['no_asambleista', 'asambleista', 'invitado_especial'];
-        const tipoAsambleaFinal = tiposValidos.includes(tipo_asamblea) ? tipo_asamblea : 'no_asambleista';
+        // Validamos los valores permitidos para tipo_asamblea
+        const tiposAsambleaValidos = ['Asambleísta', 'Niño', 'Visita'];
+        const tipoAsambleaFinal = tiposAsambleaValidos.includes(tipo_asamblea) ? tipo_asamblea : 'Visita';
+        
+        // Validamos los valores permitidos para sexo
+        const sexosValidos = ['Masculino', 'Femenino', 'Otro', null];
+        const sexoFinal = sexosValidos.includes(sexo) ? sexo : null;
         
         const [result] = await db.query(
-            'INSERT INTO convencionistas (nombre, apellido, edad, tipo_matricula, tipo_pago, referencia_pago, monto, zona_id, usuario_id, tipo_asamblea) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [nombre, apellido, edad, tipo_matricula, tipo_pago, referencia_pago, monto, zona_id, usuario_id, tipoAsambleaFinal]
+            'INSERT INTO convencionistas (nombre, apellido, edad, sexo, tipo_matricula, tipo_pago, referencia_pago, monto, zona_id, usuario_id, tipo_asamblea) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                nombre, 
+                apellido, 
+                edad, 
+                sexoFinal, 
+                tipo_matricula, 
+                tipo_pago, 
+                referencia_pago, 
+                monto, 
+                zona_id, 
+                usuario_id, 
+                tipoAsambleaFinal
+            ]
         );
         return result.insertId;
     }
@@ -57,26 +74,58 @@ class Convencionista {
             'SELECT tipo_asamblea, COUNT(*) as cantidad FROM convencionistas WHERE zona_id = ? GROUP BY tipo_asamblea',
             [zona_id]
         );
+
+        const [porSexo] = await db.query(
+            'SELECT sexo, COUNT(*) as cantidad FROM convencionistas WHERE zona_id = ? GROUP BY sexo',
+            [zona_id]
+        );
         
         return {
             total: total[0].total,
             porTipoMatricula,
             porTipoPago,
             montoTotal: montoTotal[0].total || 0,
-            porTipoAsamblea
+            porTipoAsamblea,
+            porSexo
         };
     }
 
-    // Método para actualizar el tipo de asamblea
     static async updateTipoAsamblea(id, tipo_asamblea) {
-        const tiposValidos = ['no_asambleista', 'asambleista', 'invitado_especial'];
-        const tipoAsambleaFinal = tiposValidos.includes(tipo_asamblea) ? tipo_asamblea : 'no_asambleista';
+        const tiposValidos = ['Asambleísta', 'Niño', 'Visita'];
+        const tipoAsambleaFinal = tiposValidos.includes(tipo_asamblea) ? tipo_asamblea : 'Visita';
         
         const [result] = await db.query(
             'UPDATE convencionistas SET tipo_asamblea = ? WHERE id = ?',
             [tipoAsambleaFinal, id]
         );
         return result.affectedRows > 0;
+    }
+
+    static async updateSexo(id, sexo) {
+        const sexosValidos = ['Masculino', 'Femenino', 'Otro', null];
+        const sexoFinal = sexosValidos.includes(sexo) ? sexo : null;
+        
+        const [result] = await db.query(
+            'UPDATE convencionistas SET sexo = ? WHERE id = ?',
+            [sexoFinal, id]
+        );
+        return result.affectedRows > 0;
+    }
+
+    // Método para obtener conteo por tipo de asamblea
+    static async countByTipoAsamblea(zona_id = null) {
+        let query = 'SELECT tipo_asamblea, COUNT(*) as cantidad FROM convencionistas';
+        const params = [];
+        
+        if (zona_id) {
+            query += ' WHERE zona_id = ?';
+            params.push(zona_id);
+        }
+        
+        query += ' GROUP BY tipo_asamblea';
+        
+        const [result] = await db.query(query, params);
+        return result;
     }
 }
 
