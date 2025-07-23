@@ -41,9 +41,59 @@ class Convencionista {
         return result.insertId;
     }
 
+     static async create2({ 
+        nombre, 
+        apellido, 
+        edad, 
+        sexo, 
+        tipo_matricula, 
+        tipo_pago, 
+        referencia_pago, 
+        monto, 
+        zona_id, 
+        usuario_id, 
+        tipo_asamblea = 'Visita',
+        comite  // Nuevo valor por defecto
+    }) {
+        // Validamos los valores permitidos para tipo_asamblea
+        const tiposAsambleaValidos = ['Asambleísta', 'Niño', 'Visita'];
+        const tipoAsambleaFinal = tiposAsambleaValidos.includes(tipo_asamblea) ? tipo_asamblea : 'Visita';
+        
+        // Validamos los valores permitidos para sexo
+        const sexosValidos = ['Masculino', 'Femenino', 'Otro', null];
+        const sexoFinal = sexosValidos.includes(sexo) ? sexo : null;
+        
+        const [result] = await db.query(
+            'INSERT INTO convencionistas (nombre, apellido, edad, sexo, tipo_matricula, tipo_pago, referencia_pago, monto, zona_id, usuario_id, tipo_asamblea,comite) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                nombre, 
+                apellido, 
+                edad, 
+                sexoFinal, 
+                tipo_matricula, 
+                tipo_pago, 
+                referencia_pago, 
+                monto, 
+                zona_id, 
+                usuario_id, 
+                tipoAsambleaFinal,
+                comite
+            ]
+        );
+        return result.insertId;
+    }
+
     static async getByZona(zona_id) {
         const [rows] = await db.query(
             'SELECT * FROM convencionistas WHERE zona_id = ? ORDER BY fecha_registro DESC',
+            [zona_id]
+        );
+        return rows;
+    }
+
+      static async getByZona2(zona_id) {
+        const [rows] = await db.query(
+            'SELECT * FROM convencionistas ORDER BY fecha_registro DESC',
             [zona_id]
         );
         return rows;

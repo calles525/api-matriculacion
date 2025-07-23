@@ -80,6 +80,94 @@ const create = async (req, res) => {
     }
 };
 
+const create2 = async (req, res) => {
+    const { 
+        nombre, 
+        apellido, 
+        edad, 
+        sexo,
+        tipo_matricula, 
+        tipo_pago, 
+        referencia_pago, 
+        monto,
+        tipo_asamblea = 'Visita',  // Nuevo valor por defecto
+        comite,
+        zona_id
+    } = req.body;
+    
+    const usuario_id = req.query.usuario_id;
+
+    console.log('Registro recibido:', { 
+         nombre, 
+        apellido, 
+        edad, 
+        sexo,
+        tipo_matricula, 
+        tipo_pago, 
+        referencia_pago, 
+        monto,
+        tipo_asamblea,  // Nuevo valor por defecto
+        comite,
+        zona_id
+    });
+
+    try {
+        // Validación básica
+        if (!nombre || !apellido || !referencia_pago || !zona_id || !usuario_id) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Datos incompletos',
+                requeridos: {
+                    nombre: 'string',
+                    apellido: 'string',
+                    referencia_pago: 'string',
+                    zona_id: 'number',
+                    usuario_id: 'number'
+                }
+            });
+        }
+
+        const id = await Convencionista.create2({
+            nombre, 
+            apellido, 
+            edad: edad || null, 
+            sexo,
+            tipo_matricula, 
+            tipo_pago, 
+            referencia_pago, 
+            monto, 
+            zona_id,
+            usuario_id,
+            tipo_asamblea,
+            comite
+        });
+        
+        res.status(201).json({ 
+            success: true,
+            id,
+            message: 'Convencionista registrado exitosamente',
+            data: {
+                nombre,
+                apellido,
+                edad,
+                sexo,
+                tipo_asamblea,
+                referencia_pago,
+                zona_id,
+                usuario_id
+            }
+        });
+    } catch (error) {
+        console.error('Error en create:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error al registrar convencionista',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+};
+
 const getByZona = async (req, res) => {
     const zona_id = req.query.zona_id;
     
@@ -92,6 +180,41 @@ const getByZona = async (req, res) => {
 
     try {
         const convencionistas = await Convencionista.getByZona(zona_id);
+        
+        res.json({
+            success: true,
+            count: convencionistas.length,
+            data: convencionistas.map(c => ({
+                id: c.id,
+                nombre: c.nombre,
+                apellido: c.apellido,
+                edad: c.edad,
+                sexo: c.sexo,
+                tipo_asamblea: c.tipo_asamblea,
+                tipo_matricula: c.tipo_matricula,
+                tipo_pago: c.tipo_pago,
+                referencia_pago: c.referencia_pago,
+                monto: c.monto,
+                fecha_registro: c.fecha_registro
+            }))
+        });
+    } catch (error) {
+        console.error('Error en getByZona:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error al obtener convencionistas',
+            details: error.message
+        });
+    }
+};
+
+const getByZona2 = async (req, res) => {
+   
+    
+   
+
+    try {
+        const convencionistas = await Convencionista.getByZona2();
         
         res.json({
             success: true,
@@ -236,7 +359,9 @@ const updateSexo = async (req, res) => {
 
 module.exports = { 
     create, 
-    getByZona, 
+    create2,
+    getByZona,
+    getByZona2, 
     getStats, 
     updateTipoAsamblea,
     updateSexo
