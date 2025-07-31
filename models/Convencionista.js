@@ -12,10 +12,10 @@ class Convencionista {
         monto, 
         zona_id, 
         usuario_id, 
-        tipo_asamblea = 'Visita'  // Nuevo valor por defecto
+        tipo_asamblea
     }) {
         // Validamos los valores permitidos para tipo_asamblea
-        const tiposAsambleaValidos = ['Asambleísta', 'Niño', 'Visita'];
+        const tiposAsambleaValidos = ['Asambleista', 'Niño', 'Visita'];
         const tipoAsambleaFinal = tiposAsambleaValidos.includes(tipo_asamblea) ? tipo_asamblea : 'Visita';
         
         // Validamos los valores permitidos para sexo
@@ -56,7 +56,7 @@ class Convencionista {
         comite  // Nuevo valor por defecto
     }) {
         // Validamos los valores permitidos para tipo_asamblea
-        const tiposAsambleaValidos = ['Asambleísta', 'Niño', 'Visita'];
+        const tiposAsambleaValidos = ['Asambleista', 'Niño', 'Visita'];
         const tipoAsambleaFinal = tiposAsambleaValidos.includes(tipo_asamblea) ? tipo_asamblea : 'Visita';
         
         // Validamos los valores permitidos para sexo

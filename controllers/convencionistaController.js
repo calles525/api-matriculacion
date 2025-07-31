@@ -10,7 +10,7 @@ const create = async (req, res) => {
         tipo_pago, 
         referencia_pago, 
         monto,
-        tipo_asamblea = 'Visita'  // Nuevo valor por defecto
+        tipo_asamblea  // Nuevo valor por defecto
     } = req.body;
     
     const usuario_id = req.query.usuario_id;
@@ -90,7 +90,7 @@ const create2 = async (req, res) => {
         tipo_pago, 
         referencia_pago, 
         monto,
-        tipo_asamblea = 'Visita',  // Nuevo valor por defecto
+        tipo_asamblea,  // Nuevo valor por defecto
         comite,
         zona_id
     } = req.body;
