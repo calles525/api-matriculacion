@@ -215,6 +215,8 @@ const getByZona2 = async (req, res) => {
 
     try {
         const convencionistas = await Convencionista.getByZona2();
+
+        console.log('Convencionistas obtenidos:', convencionistas)
         
         res.json({
             success: true,
@@ -230,7 +232,8 @@ const getByZona2 = async (req, res) => {
                 tipo_pago: c.tipo_pago,
                 referencia_pago: c.referencia_pago,
                 monto: c.monto,
-                fecha_registro: c.fecha_registro
+                fecha_registro: c.fecha_registro,
+                comite: c.comite
             }))
         });
     } catch (error) {
